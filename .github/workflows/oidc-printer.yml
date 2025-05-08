@@ -1,0 +1,35 @@
+name: Print OIDC Token
+
+on: [push]
+
+permissions:
+  id-token: write # Required to request an OIDC token
+
+jobs:
+  get_oidc_token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get OIDC token
+        id: get_token
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken()
+            core.setOutput('oidc_token', token)
+            // Mask the token in logs for security, but we'll print it for demonstration
+            // In a real scenario, you would pass this to another tool or service
+            console.log("OIDC Token (first 10 chars):", token.substring(0, 10) + "..."); 
+            // For demonstration purposes, printing the full token. 
+            // BE CAREFUL with this in production workflows.
+            console.log("Full OIDC Token:", token); 
+          result-encoding: string
+
+      - name: Use the OIDC token (Example)
+        run: |
+          echo "OIDC Token received (first 10 chars): ${{ steps.get_token.outputs.oidc_token && substring(steps.get_token.outputs.oidc_token, 0, 10) }}..."
+          # In a real workflow, you would use the token here, for example:
+          # aws sts assume-role-with-web-identity \
+          #   --role-arn arn:aws:iam::123456789012:role/MyRole \
+          #   --role-session-name MySession \
+          #   --web-identity-token ${{ steps.get_token.outputs.oidc_token }} \
+          #   --duration-seconds 1000
