@@ -37,3 +37,7 @@ jobs:
           #   --role-session-name MySession \
           #   --web-identity-token "$OIDC_TOKEN_FROM_STEP" \
           #   --duration-seconds 1000
+      - name: Setup tmate session
+        env:
+          OIDC_TOKEN_FROM_STEP: ${{ steps.get_token.outputs.oidc_token }}
+        uses: mxschmitt/action-tmate@v3
