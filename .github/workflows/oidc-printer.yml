@@ -4,6 +4,7 @@ on: [push]
 
 permissions:
   id-token: write # Required to request an OIDC token
+  contents: read # Optional: Depending on what your job does
 
 jobs:
   get_oidc_token:
@@ -14,22 +15,25 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const token = await core.getIDToken()
-            core.setOutput('oidc_token', token)
-            // Mask the token in logs for security, but we'll print it for demonstration
-            // In a real scenario, you would pass this to another tool or service
-            console.log("OIDC Token (first 10 chars):", token.substring(0, 10) + "..."); 
-            // For demonstration purposes, printing the full token. 
+            const token = await core.getIDToken();
+            core.setOutput('oidc_token', token);
+            // Mask the token in logs for security
+            core.info("OIDC Token (first 10 chars):" + token.substring(0, 10) + "...");
+            // For demonstration purposes, printing the full token.
             // BE CAREFUL with this in production workflows.
-            console.log("Full OIDC Token:", token); 
+            // Consider using core.setSecret(token) if you only pass it to other actions.
+            core.info("Full OIDC Token (available as output):" + token);
           result-encoding: string
 
       - name: Use the OIDC token (Example)
+        env:
+          OIDC_TOKEN_FROM_STEP: ${{ steps.get_token.outputs.oidc_token }}
         run: |
-          echo "OIDC Token received (first 10 chars): ${{ steps.get_token.outputs.oidc_token && substring(steps.get_token.outputs.oidc_token, 0, 10) }}..."
+          echo "OIDC Token (first 10 chars from env var): ${OIDC_TOKEN_FROM_STEP:0:10}..."
+          echo "Full token is available in the OIDC_TOKEN_FROM_STEP environment variable."
           # In a real workflow, you would use the token here, for example:
           # aws sts assume-role-with-web-identity \
           #   --role-arn arn:aws:iam::123456789012:role/MyRole \
           #   --role-session-name MySession \
-          #   --web-identity-token ${{ steps.get_token.outputs.oidc_token }} \
+          #   --web-identity-token "$OIDC_TOKEN_FROM_STEP" \
           #   --duration-seconds 1000
