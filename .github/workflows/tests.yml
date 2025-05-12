@@ -9,7 +9,7 @@ jobs:
       id-token: write # Required to fetch the OIDC token
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0 # Fetch all history for all branches and tags
 
@@ -74,7 +74,12 @@ jobs:
             dsn=$(echo "$dsn_response" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
         fi
         if [ -z "$dsn" ]; then
+        echo "::error::Could not extract DSN from response. Response was: $dsn_response"
+        exit 1
+        fi
 
+        # Set the DSN as an output
+        echo "::set-output name=dsn::$dsn"
 
 
     - name: Run tests with coverage
