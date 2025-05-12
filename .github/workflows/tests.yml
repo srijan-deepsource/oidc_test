@@ -62,6 +62,7 @@ jobs:
         dsn_response=$(curl -s -X POST ${DEEPSOURCE_ENDPOINT} -H "Authorization: Bearer ${oidc_token}")
         if [ -z "$dsn_response" ]; then
         echo "::error::Failed to get a response from DSN endpoint."
+        echo "::debug::Response: $dsn_response"
         exit 1
         fi
 
@@ -77,6 +78,7 @@ jobs:
         echo "::error::Could not extract DSN from response. Response was: $dsn_response"
         exit 1
         fi
+        echo "::debug::DSN: $dsn"
 
         # Set the DSN as an output
         echo "::set-output name=dsn::$dsn"
