@@ -65,6 +65,7 @@ jobs:
         echo "::debug::Response: $dsn_response"
         exit 1
         fi
+        echo "::debug::Raw DSN response: $dsn_response"
 
         # The temporary DSN is in the 'access_token' field of the response. Store it as an output.
         if command -v jq &> /dev/null
