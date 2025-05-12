@@ -1,0 +1,91 @@
+name: Run Tests and Report Coverage
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required to fetch the OIDC token
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Fetch all history for all branches and tags
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x' # Specify your Python version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov
+        # Install Deepsource CLI
+        curl https://deepsource.io/cli | sh
+        sudo mv bin/deepsource /usr/local/bin/deepsource
+
+    - name: Exchange OIDC token for a temp DSN
+      id: oidc_token_exchange
+      run: |
+        echo "Attempting to fetch OIDC token..."
+        audience_param="" # No specific audience in this example
+
+        oidc_token_response=$(curl -s -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}${audience_param}")
+
+        if [ -z "$oidc_token_response" ]; then
+        echo "::error::Failed to get a response from OIDC token endpoint."
+        exit 1
+        fi
+
+        echo "::debug::Raw OIDC token response: $oidc_token_response"
+
+        # Assuming the response is JSON and the token is in a 'value' field
+        # Use jq if available for robust JSON parsing, otherwise a simpler method for this specific case.
+        if command -v jq &> /dev/null
+        then
+            oidc_token=$(echo "$oidc_token_response" | jq -r '.value')
+        else
+            # Basic parsing if jq is not available - might be fragile
+            oidc_token=$(echo "$oidc_token_response" | sed -n 's/.*"value":"\([^"]*\)".*/\1/p')
+        fi
+
+        if [ -z "$oidc_token" ]; then
+        echo "::error::Could not extract OIDC token from response. Response was: $oidc_token_response"
+        exit 1
+        fi
+
+        # Exchange the OIDC token for a temporary DSN
+        # DEEPSOURCE ENDPOINT TO DO THIS IS : https://app.deepsource.one/services/oidc/github-actions/. It requires the OIDC token as the Authorization bearer token.
+        DEEPSOURCE_ENDPOINT="https://app.deepsource.one/services/oidc/github-actions/"
+        dsn_response=$(curl -s -X POST ${DEEPSOURCE_ENDPOINT} -H "Authorization: Bearer ${oidc_token}")
+        if [ -z "$dsn_response" ]; then
+        echo "::error::Failed to get a response from DSN endpoint."
+        exit 1
+        fi
+
+        # The temporary DSN is in the 'access_token' field of the response. Store it as an output.
+        if command -v jq &> /dev/null
+        then
+            dsn=$(echo "$dsn_response" | jq -r '.access_token')
+        else
+            # Basic parsing if jq is not available - might be fragile
+            dsn=$(echo "$dsn_response" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+        fi
+        if [ -z "$dsn" ]; then
+
+
+
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=./ --cov-report=xml test_app.py
+        # Assuming test_app.py is at the root and you want coverage for the current directory.
+        # Adjust --cov=./ path if your source code is in a subdirectory e.g. --cov=src
+        # The coverage report will be generated as coverage.xml by default
+
+    - name: Report coverage to Deepsource
+      env:
+        DEEPSOURCE_DSN: ${{ steps.oidc_token_exchange.outputs.dsn }}
+      run: |
+        deepsource report --analyzer test-coverage --key python --value-file ./coverage.xml

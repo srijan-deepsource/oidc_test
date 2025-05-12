@@ -1,10 +1,9 @@
-name: Print OIDC Token
+name: run test
 
 on: [push]
 
 permissions:
   id-token: write # Required to request an OIDC token
-  contents: read # Optional: Depending on what your job does
 
 jobs:
   get_oidc_token:
