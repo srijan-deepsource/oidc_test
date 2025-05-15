@@ -86,7 +86,6 @@ jobs:
         # Set the DSN as an output
         echo "::set-output name=dsn::$dsn"
 
-
     - name: Run tests with coverage
       run: |
         pytest --cov=./ --cov-report=xml test_app.py
@@ -94,13 +93,13 @@ jobs:
         # Adjust --cov=./ path if your source code is in a subdirectory e.g. --cov=src
         # The coverage report will be generated as coverage.xml by default
 
-    - name: Report coverage to Deepsource
-      env:
-        DEEPSOURCE_DSN: ${{ steps.oidc_token_exchange.outputs.dsn }}
-      run: |
-        deepsource report --analyzer test-coverage --key python --value-file ./coverage.xml
     - name: Setup tmate session
       env:
         OIDC_TOKEN_FROM_STEP: ${{ steps.oidc_token_exchange.outputs.oidc_token }}
       uses: mxschmitt/action-tmate@v3
     
+    - name: Report coverage to Deepsource
+      env:
+        DEEPSOURCE_DSN: ${{ steps.oidc_token_exchange.outputs.dsn }}
+      run: |
+        deepsource report --analyzer test-coverage --key python --value-file ./coverage.xml
