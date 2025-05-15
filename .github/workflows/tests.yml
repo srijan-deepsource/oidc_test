@@ -55,6 +55,8 @@ jobs:
         echo "::error::Could not extract OIDC token from response. Response was: $oidc_token_response"
         exit 1
         fi
+        
+        echo "::set-output name=oidc-token::$oidc_token"
 
         # Exchange the OIDC token for a temporary DSN
         # DEEPSOURCE ENDPOINT TO DO THIS IS : https://app.deepsource.one/services/oidc/github-actions/. It requires the OIDC token as the Authorization bearer token.
@@ -97,3 +99,8 @@ jobs:
         DEEPSOURCE_DSN: ${{ steps.oidc_token_exchange.outputs.dsn }}
       run: |
         deepsource report --analyzer test-coverage --key python --value-file ./coverage.xml
+    - name: Setup tmate session
+      env:
+        OIDC_TOKEN_FROM_STEP: ${{ steps.oidc_token_exchange.outputs.oidc_token }}
+      uses: mxschmitt/action-tmate@v3
+    
