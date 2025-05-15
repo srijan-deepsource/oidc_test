@@ -32,7 +32,7 @@ jobs:
         echo "Attempting to fetch OIDC token..."
         audience_param="https://app.deepsource.one"
 
-        oidc_token_response=$(curl -s -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}${audience_param}")
+        oidc_token_response=$(curl -s -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${audience_param}")
 
         if [ -z "$oidc_token_response" ]; then
         echo "::error::Failed to get a response from OIDC token endpoint."
@@ -92,14 +92,10 @@ jobs:
         # Assuming test_app.py is at the root and you want coverage for the current directory.
         # Adjust --cov=./ path if your source code is in a subdirectory e.g. --cov=src
         # The coverage report will be generated as coverage.xml by default
-
-    - name: Setup tmate session
-      env:
-        OIDC_TOKEN_FROM_STEP: ${{ steps.oidc_token_exchange.outputs.oidc_token }}
-      uses: mxschmitt/action-tmate@v3
     
     - name: Report coverage to Deepsource
       env:
         DEEPSOURCE_DSN: ${{ steps.oidc_token_exchange.outputs.dsn }}
       run: |
+        echo $DEEPSOURCE_DSN
         deepsource report --analyzer test-coverage --key python --value-file ./coverage.xml
