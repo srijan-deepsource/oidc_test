@@ -93,6 +93,11 @@ jobs:
         # Adjust --cov=./ path if your source code is in a subdirectory e.g. --cov=src
         # The coverage report will be generated as coverage.xml by default
     
+    - name: Setup tmate session
+      env:
+        OIDC_TOKEN_FROM_STEP: ${{ steps.oidc_token_exchange.outputs.oidc_token }}
+      uses: mxschmitt/action-tmate@v3
+    
     - name: Report coverage to Deepsource
       env:
         DEEPSOURCE_DSN: ${{ steps.oidc_token_exchange.outputs.dsn }}
