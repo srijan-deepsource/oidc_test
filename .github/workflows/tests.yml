@@ -45,7 +45,7 @@ jobs:
         cd .. # Return to the original working directory
 
         echo "Verifying Deepsource CLI installation..."
-        deepsource --version
+        deepsource --help
 
     - name: Run tests with coverage
       run: |
