@@ -31,18 +31,7 @@ jobs:
         echo "Installing make..."
         sudo apt-get update && sudo apt-get install -y make
 
-        echo "Cloning Deepsource CLI repository..."
-        # Using HTTPS for easier CI access; ensure the branch 'eng-2483' exists
-        git clone --branch master --depth 1 https://github.com/DeepSourceCorp/cli.git deepsource_cli
-
-        echo "Building Deepsource CLI..."
-        cd deepsource_cli
-        make build_local
-
-        echo "Installing Deepsource CLI binary..."
-        # Binary is created at /tmp/deepsource by 'make build_local'
-        sudo cp /tmp/deepsource /usr/local/bin/deepsource
-        cd .. # Return to the original working directory
+        curl -fsSL https://cli.deepsource.com/install | BINDIR=./bin sh
 
         echo "Verifying Deepsource CLI installation..."
         deepsource --help
