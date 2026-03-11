@@ -34,7 +34,7 @@ jobs:
         curl -fsSL https://cli.deepsource.com/install | BINDIR=./bin sh
 
         echo "Verifying Deepsource CLI installation..."
-        deepsource --help
+        ./bin/deepsource --help
 
     - name: Run tests with coverage
       run: |
@@ -45,4 +45,4 @@ jobs:
 
     - name: Report coverage to Deepsource
       run: |
-        deepsource report --use-oidc --analyzer test-coverage --key python --value-file ./coverage.xml
+        ./bin/deepsource report --use-oidc --analyzer test-coverage --key python --value-file ./coverage.xml
