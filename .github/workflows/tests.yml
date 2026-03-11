@@ -1,6 +1,8 @@
 name: Run Tests and Report Coverage
 
 on: [push, pull_request]
+env:
+  DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN_DEV }}
 
 jobs:
   test:
@@ -45,4 +47,4 @@ jobs:
 
     - name: Report coverage to Deepsource
       run: |
-        ./bin/deepsource report --use-oidc --analyzer test-coverage --key python --value-file ./coverage.xml
+        ./bin/deepsource report --analyzer test-coverage --key python --value-file ./coverage.xml
