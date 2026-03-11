@@ -1,6 +1,8 @@
 name: Run Tests and Report Coverage
 
 on: [push, pull_request]
+env:
+  DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN_DEV }}
 
 jobs:
   test:
@@ -31,21 +33,10 @@ jobs:
         echo "Installing make..."
         sudo apt-get update && sudo apt-get install -y make
 
-        echo "Cloning Deepsource CLI repository..."
-        # Using HTTPS for easier CI access; ensure the branch 'eng-2483' exists
-        git clone --branch eng-2483 --depth 1 https://github.com/DeepSourceCorp/cli.git deepsource_cli
-
-        echo "Building Deepsource CLI..."
-        cd deepsource_cli
-        make build_local
-
-        echo "Installing Deepsource CLI binary..."
-        # Binary is created at /tmp/deepsource by 'make build_local'
-        sudo cp /tmp/deepsource /usr/local/bin/deepsource
-        cd .. # Return to the original working directory
+        curl -fsSL https://cli.deepsource.com/install | BINDIR=./bin sh
 
         echo "Verifying Deepsource CLI installation..."
-        deepsource --help
+        ./bin/deepsource --help
 
     - name: Run tests with coverage
       run: |
@@ -56,4 +47,4 @@ jobs:
 
     - name: Report coverage to Deepsource
       run: |
-        deepsource report --use-oidc --analyzer test-coverage --key python --value-file ./coverage.xml
+        ./bin/deepsource report --analyzer test-coverage --key python --value-file ./coverage.xml
