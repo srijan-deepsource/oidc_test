@@ -33,7 +33,7 @@ jobs:
 
         echo "Cloning Deepsource CLI repository..."
         # Using HTTPS for easier CI access; ensure the branch 'eng-2483' exists
-        git clone --branch eng-2483 --depth 1 https://github.com/DeepSourceCorp/cli.git deepsource_cli
+        git clone --branch master --depth 1 https://github.com/DeepSourceCorp/cli.git deepsource_cli
 
         echo "Building Deepsource CLI..."
         cd deepsource_cli
